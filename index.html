@@ -343,9 +343,10 @@
         .list-item:hover .action-arrow { color: var(--text-main); }
 
         @media(max-width: 900px) {
-            .home-hero { flex-direction: column; text-align: center; gap: 24px; }
-            .hero-content { align-items: center; max-width: 100%; }
-            .hero-content h2 { font-size: 2.5rem; }
+            .home-hero { flex-direction: row; text-align: left; gap: 16px; align-items: center; }
+            .hero-content { align-items: flex-start; max-width: 60%; }
+            .hero-content h2 { font-size: 2rem; }
+            .hero-image { width: 40%; max-width: 150px; }
             .home-cards { grid-template-columns: 1fr 1fr; }
             .home-bottom-grid { grid-template-columns: 1fr; }
             .purple-card { padding: 20px; flex-direction: column; text-align: center; gap: 16px; }
@@ -353,6 +354,10 @@
         }
         
         @media(max-width: 600px) {
+            .hero-content h2 { font-size: 1.5rem; margin-bottom: 8px; }
+            .hero-content p { font-size: 0.85rem; line-height: 1.4; }
+            .welcome-text { font-size: 0.85rem; margin-bottom: 4px; }
+            .hero-image { max-width: 120px; }
             .home-cards { gap: 12px; }
             .purple-card { padding: 12px; gap: 8px; }
             .purple-card img { width: 50px; height: 50px; }
