@@ -110,6 +110,7 @@
         html, body { height: 100%; height: 100dvh; overflow: hidden; }
 
         body {
+            margin: 0;
             font-family: 'Inter', system-ui, sans-serif;
             color: var(--text-main);
             background-color: var(--bg-color);
@@ -180,7 +181,7 @@
         .mobile-menu-toggle { display: none; }
 
         @media(max-width: 768px) {
-            .app-bar { padding: 0 8px; padding-top: env(safe-area-inset-top); border-radius: 0; }
+            .app-bar { padding: 0 16px; padding-top: env(safe-area-inset-top); border-radius: 0; }
             .brand h1 { font-size: 1rem; gap: 4px; }
             .pro-badge { padding: 2px 4px; font-size: 0.55rem; }
             .header-actions { gap: 4px; }
@@ -422,9 +423,9 @@
 
         /* Editor Overrides for Mobile Layout */
         @media(max-width: 768px) {
-            .workspace-area { padding: 0; gap: 0; position: relative; overflow: hidden; }
-            .left-toolbar { border-radius: 0; margin-bottom: 0; padding: 8px; z-index: 10; background: var(--glass-bg); backdrop-filter: var(--glass-blur); }
-            .canvas-container { border-radius: 0; margin-bottom: 64px; }
+            .workspace-area { padding: 0 8px; gap: 8px; position: relative; overflow: hidden; }
+            .left-toolbar { border-radius: var(--radius-md); margin-bottom: 0; padding: 8px; z-index: 10; background: var(--glass-bg); backdrop-filter: var(--glass-blur); }
+            .canvas-container { border-radius: var(--radius-md); margin-bottom: 64px; }
             
             .right-panel {
                 position: absolute; bottom: 0; left: 0; right: 0; width: 100%;
