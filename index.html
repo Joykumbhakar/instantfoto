@@ -349,8 +349,8 @@
             .hero-image { width: 40%; max-width: 150px; }
             .home-cards { grid-template-columns: 1fr 1fr; }
             .home-bottom-grid { grid-template-columns: 1fr; }
-            .purple-card { padding: 20px; flex-direction: column; text-align: center; gap: 16px; }
-            .purple-card img { width: 80px; height: 80px; }
+            .purple-card { padding: 16px; flex-direction: row; text-align: left; gap: 12px; align-items: center; }
+            .purple-card img { width: 60px; height: 60px; }
         }
         
         @media(max-width: 600px) {
@@ -358,12 +358,13 @@
             .hero-content p { font-size: 0.85rem; line-height: 1.4; }
             .welcome-text { font-size: 0.85rem; margin-bottom: 4px; }
             .hero-image { max-width: 120px; }
-            .home-cards { gap: 12px; }
-            .purple-card { padding: 12px; gap: 8px; }
-            .purple-card img { width: 50px; height: 50px; }
-            .purple-card h3 { font-size: 0.95rem; margin-bottom: 4px; }
-            .purple-card p { font-size: 0.75rem; display: none; }
-            .purple-card .btn { font-size: 0.8rem; padding: 8px 4px; width: 100%; box-sizing: border-box; }
+            .home-cards { gap: 8px; }
+            .purple-card { padding: 10px; gap: 8px; flex-direction: row; align-items: center; text-align: left; }
+            .purple-card img { width: 40px; height: 40px; }
+            .purple-card-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+            .purple-card h3 { font-size: 0.85rem; margin-bottom: 0; line-height: 1.1; }
+            .purple-card p { display: none; }
+            .purple-card .btn { font-size: 0.7rem; padding: 6px 8px; width: 100%; box-sizing: border-box; margin-top: 2px; }
         }
 
         /* --- Editor View --- */
