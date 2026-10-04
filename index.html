@@ -1603,19 +1603,19 @@
     <div class="export-bar glass-panel">
         <div class="export-settings">
             <div class="flex-between w-100">
-                <span class="text-sm font-semibold">Target Size: <span id="lbl-size" style="color: var(--primary); font-weight: 700;">50 KB</span> <span id="lbl-live-kb" class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); font-size: 0.7rem; margin-left: 6px; padding: 2px 6px; border-radius: 4px;">Live: ~48 KB</span></span>
+                <span class="text-sm font-semibold">Quality: <span id="lbl-size" style="color: var(--primary); font-weight: 700;">85%</span> <span id="lbl-live-kb" class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); font-size: 0.7rem; margin-left: 6px; padding: 2px 6px; border-radius: 4px;">Live: ~48 KB</span></span>
                 <span class="text-xs text-muted" id="lbl-dim">--- px</span>
             </div>
-            <!-- Quick Target KB Chips -->
+            <!-- Quick Target % Chips -->
             <div class="flex-row gap-2 mt-1" id="quick-kb-chips" style="overflow-x: auto; scrollbar-width: none;">
-                <button type="button" class="badge-btn" onclick="setTargetKB(20, this)">10-20 KB</button>
-                <button type="button" class="badge-btn active" onclick="setTargetKB(50, this)">20-50 KB</button>
-                <button type="button" class="badge-btn" onclick="setTargetKB(100, this)">50-100 KB</button>
-                <button type="button" class="badge-btn" onclick="setTargetKB(200, this)">100-200 KB</button>
-                <button type="button" class="badge-btn" onclick="setTargetKB(500, this)">Max Res</button>
+                <button type="button" class="badge-btn" onclick="setQualityPercent(30, this)">30% Low</button>
+                <button type="button" class="badge-btn" onclick="setQualityPercent(50, this)">50% Med</button>
+                <button type="button" class="badge-btn" onclick="setQualityPercent(75, this)">75% Good</button>
+                <button type="button" class="badge-btn active" onclick="setQualityPercent(85, this)">85% Pro</button>
+                <button type="button" class="badge-btn" onclick="setQualityPercent(100, this)">100% Max</button>
             </div>
             <div class="flex-row gap-3 mt-1">
-                <input type="range" id="exp-size" min="10" max="1024" value="50" step="5" oninput="updateSizeLabel(); updateLiveSizeEstimate();" style="flex-grow: 1;">
+                <input type="range" id="exp-size" min="10" max="100" value="85" step="1" oninput="updateSizeLabel(); updateLiveSizeEstimate();" style="flex-grow: 1;">
                 <select id="exp-fmt" class="flat-select" style="width: 90px; padding: 8px;" onchange="updateLiveSizeEstimate()">
                     <option value="jpeg">JPG</option>
                     <option value="png">PNG</option>
@@ -2648,12 +2648,12 @@
     }
 
     function updateSizeLabel() {
-        const kb = document.getElementById('exp-size').value;
-        document.getElementById('lbl-size').textContent = kb >= 1000 ? `${(kb/1024).toFixed(1)} MB` : `${kb} KB`;
+        const pct = document.getElementById('exp-size').value;
+        document.getElementById('lbl-size').textContent = `${pct}%`;
     }
 
-    function setTargetKB(kb, btnEl) {
-        document.getElementById('exp-size').value = kb;
+    function setQualityPercent(pct, btnEl) {
+        document.getElementById('exp-size').value = pct;
         updateSizeLabel();
         if (btnEl) {
             document.querySelectorAll('#quick-kb-chips .badge-btn').forEach(b => b.classList.remove('active'));
@@ -2666,24 +2666,24 @@
         if (!state.cropper) return;
         const baseCanvas = synthesizeFinalCanvas();
         if (!baseCanvas) return;
-        const maxKB = parseInt(document.getElementById('exp-size').value) || 50;
+        const pct = parseInt(document.getElementById('exp-size').value) || 85;
+        const quality = Math.max(0.05, Math.min(1.0, pct / 100));
         const fmt = document.getElementById('exp-fmt').value;
         const liveEl = document.getElementById('lbl-live-kb');
         if (!liveEl) return;
 
         if (fmt === 'png') {
             baseCanvas.toBlob(b => {
-                if (b) liveEl.textContent = `Actual: ${(b.size / 1024).toFixed(1)} KB`;
+                if (b) liveEl.textContent = `Size: ${(b.size / 1024).toFixed(1)} KB (Lossless)`;
             }, 'image/png');
         } else {
             baseCanvas.toBlob(b => {
                 if (b) {
                     const kb = (b.size / 1024).toFixed(1);
-                    const isUnder = b.size <= maxKB * 1024;
-                    liveEl.textContent = isUnder ? `Live: ${kb} KB ✓` : `Live: ~${maxKB} KB (Auto Comp)`;
+                    liveEl.textContent = `Live: ~${kb} KB`;
                     liveEl.style.color = 'var(--success)';
                 }
-            }, 'image/jpeg', 0.85);
+            }, 'image/jpeg', quality);
         }
     }
 
@@ -2780,9 +2780,9 @@
         updateBgColor('transparent');
         
         if (presetKey.startsWith('sig_')) {
-            setTargetKB(20, document.querySelector('#quick-kb-chips .badge-btn:first-child'));
+            setQualityPercent(50, document.querySelectorAll('#quick-kb-chips .badge-btn')[1]);
         } else if (presetKey === 'thumb_lti') {
-            setTargetKB(50, document.querySelectorAll('#quick-kb-chips .badge-btn')[1]);
+            setQualityPercent(75, document.querySelectorAll('#quick-kb-chips .badge-btn')[2]);
         }
         triggerCanvasUpdate();
     }
@@ -3041,8 +3041,8 @@
             const baseCanvas = state.cropper ? synthesizeFinalCanvas() : null;
             const targetCanvas = isPrint ? generatePrintSheetCanvas(baseCanvas) : baseCanvas;
             const name = state.fileName + (isPrint ? '_Print' : '_Photo');
-            const fmt = document.getElementById('exp-fmt').value;
-            const maxB = parseInt(document.getElementById('exp-size').value) * 1024;
+            const pct = parseInt(document.getElementById('exp-size').value) || 85;
+            const quality = Math.max(0.05, Math.min(1.0, pct / 100));
             
             if(fmt === 'pdf' && isPrint) {
                 const { jsPDF } = window.jspdf;
@@ -3051,7 +3051,7 @@
                 if(paperId === 'custom') { w_mm = parseFloat(document.getElementById('custom-paper-w').value); h_mm = parseFloat(document.getElementById('custom-paper-h').value); }
                 
                 const doc = new jsPDF({ orientation: w_mm>h_mm?'l':'p', unit: 'mm', format: [w_mm, h_mm] });
-                doc.addImage(targetCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, w_mm, h_mm, '', 'FAST');
+                doc.addImage(targetCanvas.toDataURL('image/jpeg', quality), 'JPEG', 0, 0, w_mm, h_mm, '', 'FAST');
                 doc.save(`${name}.pdf`);
                 showToast('PDF Exported Successfully!');
                 recordPrintJob();
@@ -3061,11 +3061,12 @@
                     downloadBlob(blob, `${name}.png`);
                     showToast('Export Successful!');
                     if(isPrint) recordPrintJob();
-                }, 'image/png', 0.95);
+                }, 'image/png');
             } else {
-                const blob = await executeStrictCompression(targetCanvas, maxB, 'image/jpeg');
-                downloadBlob(blob, `${name}.jpg`);
-                showToast(`Optimized to ${(blob.size/1024).toFixed(1)} KB`);
+                targetCanvas.toBlob(blob => {
+                    downloadBlob(blob, `${name}.jpg`);
+                    showToast(`Exported at ${pct}% quality (${(blob.size/1024).toFixed(1)} KB)`);
+                }, 'image/jpeg', quality);
             }
         } catch(e) {
             console.error(e); showToast('Export failed.', 'error');
