@@ -624,6 +624,13 @@
 
         .helper-text { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
         .spec-badge { display: inline-block; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-left: auto; border: 1px solid var(--glass-border); }
+        .badge-btn {
+            padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 600;
+            background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-muted);
+            cursor: pointer; white-space: nowrap; transition: var(--transition);
+        }
+        .badge-btn:hover { background: var(--glass-bg-hover); color: var(--text-main); }
+        .badge-btn.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
 
         /* --- UI Overlay Controls --- */
         #undo-redo-bar {
@@ -1044,6 +1051,9 @@
             <button class="tool-btn" onclick="switchTool('tune', this, 'Image Tuning')">
                 <i class="ph-fill ph-sliders-horizontal"></i><span>Tune</span>
             </button>
+            <button class="tool-btn" onclick="switchTool('sig', this, 'Signature & Ink Clean')">
+                <i class="ph-fill ph-signature"></i><span>Signature</span>
+            </button>
             <button class="tool-btn" onclick="switchTool('stamp', this, 'Text Stamp')">
                 <i class="ph-fill ph-text-t"></i><span>Stamp</span>
             </button>
@@ -1114,17 +1124,40 @@
                     <label class="input-label">Document Preset</label>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <select id="docType" class="flat-select" style="flex: 1;" onchange="updateDimensions()">
-                            <option value="custom">Free Aspect</option>
+                            <option value="custom">Custom Free Aspect</option>
                             <optgroup label="Government Exams (India)">
                                 <option value="upsc" selected>UPSC / IAS (3.5 × 4.5 cm)</option>
-                                <option value="ssc">SSC / RRB (3.5 × 4.5 cm)</option>
+                                <option value="ssc">SSC / CGL (3.5 × 4.5 cm)</option>
+                                <option value="rrb">Railway RRB (3.5 × 4.5 cm)</option>
                                 <option value="ibps">Bank PO / Clerk (4.5 × 3.5 cm)</option>
+                                <option value="nta">NTA NEET / JEE (3.5 × 4.5 cm)</option>
                             </optgroup>
-                            <optgroup label="ID Cards & Proofs">
-                                <option value="pvc" style="font-weight: bold;">[PRO] PVC Card Full (8.56 × 5.4 cm)</option>
+                            <optgroup label="ID Cards & Proofs (India)">
+                                <option value="passport">Indian Passport (5.1 × 5.1 cm)</option>
                                 <option value="eci">Voter ID (3.5 × 4.5 cm)</option>
                                 <option value="pan">PAN Card (2.5 × 3.5 cm)</option>
-                                <option value="passport">Indian Passport (5.1 × 5.1 cm)</option>
+                                <option value="dl_in">Driving License (3.5 × 4.5 cm)</option>
+                                <option value="pvc" style="font-weight: bold;">[PRO] PVC Card Full (8.56 × 5.4 cm)</option>
+                                <option value="oci">OCI Card (5.1 × 5.1 cm)</option>
+                            </optgroup>
+                            <optgroup label="International Visas & Passports">
+                                <option value="us_visa">US Visa / Green Card (2 × 2 in)</option>
+                                <option value="schengen">Schengen Visa (3.5 × 4.5 cm)</option>
+                                <option value="uk_visa">UK Passport / Visa (3.5 × 4.5 cm)</option>
+                                <option value="canada_pass">Canada Passport (5.0 × 7.0 cm)</option>
+                                <option value="canada_visa">Canada Visa (3.5 × 4.5 cm)</option>
+                                <option value="australia">Australia Visa (3.5 × 4.5 cm)</option>
+                                <option value="dubai_visa">Dubai / UAE Visa (4.0 × 6.0 cm)</option>
+                                <option value="singapore">Singapore Visa (3.5 × 4.5 cm)</option>
+                                <option value="malaysia">Malaysia Visa (3.5 × 5.0 cm)</option>
+                                <option value="japan_visa">Japan Visa (4.5 × 4.5 cm)</option>
+                                <option value="china_visa">China Visa (3.3 × 4.8 cm)</option>
+                            </optgroup>
+                            <optgroup label="Signatures & Impressions">
+                                <option value="sig_upsc">UPSC Signature (3.5 × 1.5 cm)</option>
+                                <option value="sig_ssc">SSC Signature (4.0 × 2.0 cm)</option>
+                                <option value="sig_ibps">Bank PO Signature (140 × 60 px)</option>
+                                <option value="thumb_lti">Left Thumb Impression (3.5 × 3.5 cm)</option>
                             </optgroup>
                         </select>
                         <div class="switch-parent" title="Lock Aspect Ratio" style="display: flex; flex-direction: column; align-items: center;">
@@ -1356,6 +1389,74 @@
                 </div>
             </div>
 
+            <!-- SIGNATURE & THUMB IMPRESSION PANEL -->
+            <div class="tool-panel" id="panel-sig">
+                <div class="form-helper-box mb-3">
+                    <div class="flex-between mb-2">
+                        <span class="text-sm font-semibold" style="color: var(--primary);"><i class="ph-fill ph-signature"></i> Signature & Ink Enhancer</span>
+                    </div>
+                    <p class="text-xs text-muted mb-3">Instantly convert camera photos of signatures on paper into clean, high-contrast digital scans with a pure white background.</p>
+                    <button class="btn btn-filled w-100" onclick="autoCleanSignature()"><i class="ph-bold ph-magic-wand"></i> Auto Clean & Whiten Paper</button>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Signature Format Preset</label>
+                    <select id="sig-preset-select" class="flat-select" onchange="applySigPreset(this.value)">
+                        <option value="sig_upsc">UPSC / IAS (3.5 × 1.5 cm | 10-20 KB)</option>
+                        <option value="sig_ssc">SSC CGL/CHSL (4.0 × 2.0 cm | 10-20 KB)</option>
+                        <option value="sig_ibps">Bank PO / Clerk (140 × 60 px | 10-20 KB)</option>
+                        <option value="thumb_lti">Left Thumb Impression (3.5 × 3.5 cm | 20-50 KB)</option>
+                        <option value="sig_custom">Custom Signature Dimensions</option>
+                    </select>
+                </div>
+
+                <div class="switch-container mt-3">
+                    <div>
+                        <span class="text-sm font-semibold">Ink Enhancement Filter</span>
+                        <div class="helper-text">Removes paper shadows, creases & yellow tint.</div>
+                    </div>
+                    <div class="switch-parent">
+                        <input type="checkbox" class="checkbox" id="chk-sig-filter" onchange="toggleSigFilter()">
+                        <label class="switch" for="chk-sig-filter">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="sig-filter-controls" style="opacity: 0.4; pointer-events: none; transition: var(--transition);">
+                    <div class="input-group mt-3">
+                        <div class="flex-between mb-1">
+                            <label class="input-label text-xs mb-0">Ink Darkness Threshold</label>
+                            <span id="val-sig-thresh" class="text-xs font-semibold">160</span>
+                        </div>
+                        <input type="range" id="adj-sig-thresh" min="60" max="230" value="160" oninput="debouncedSigFilterApply()">
+                    </div>
+
+                    <div class="input-group mt-3">
+                        <label class="input-label text-xs">Ink Color Tone</label>
+                        <select id="sig-color-mode" class="flat-select" onchange="debouncedSigFilterApply()">
+                            <option value="black" selected>Crisp Deep Black (#000000)</option>
+                            <option value="blue">Classic Blue Pen (#003366)</option>
+                            <option value="navy">Dark Royal Navy (#0f172a)</option>
+                            <option value="original">Original Ink Gradient</option>
+                        </select>
+                    </div>
+
+                    <div class="switch-container mt-3 pt-3" style="border-top: 1px solid var(--glass-border);">
+                        <div>
+                            <span class="text-sm font-semibold">Invert Colors</span>
+                            <div class="helper-text">White ink on black background.</div>
+                        </div>
+                        <div class="switch-parent">
+                            <input type="checkbox" class="checkbox" id="chk-sig-invert" onchange="debouncedSigFilterApply()">
+                            <label class="switch" for="chk-sig-invert">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- STAMP PANEL -->
             <div class="tool-panel" id="panel-stamp">
                 <div class="flex-between mb-4">
@@ -1469,17 +1570,21 @@
                     </div>
 
                     <div class="input-group mt-3">
-                        <label class="input-label text-xs">Cut Mark Lines</label>
+                        <label class="input-label text-xs">Print Sheet Cut Marks</label>
                         <select id="print-cutmarks" class="flat-select" onchange="triggerPrintUpdate()">
-                            <option value="solid">Solid Line</option>
-                            <option value="dashed-pro" selected>Dashed Scissor Pro</option>
-                            <option value="none">None</option>
+                            <option value="dashed-pro" selected>✂ Dashed Scissor Guides</option>
+                            <option value="solid">Thin Solid Border</option>
+                            <option value="corner-cross">Studio Corner Crop Marks</option>
+                            <option value="none">None (Borderless)</option>
                         </select>
                     </div>
 
                     <div class="input-group mb-0 mt-3">
-                        <label class="input-label text-xs">Shop Watermark (Footer)</label>
-                        <input type="text" id="inp-shopname" class="flat-input" placeholder="e.g. Cyber Hub" oninput="debouncedPrintUpdate()">
+                        <label class="input-label text-xs">Studio / Cybercafe Branding (Footer)</label>
+                        <div class="grid-2">
+                            <input type="text" id="inp-shopname" class="flat-input" placeholder="Shop Name (e.g. Cyber Hub)" oninput="debouncedPrintUpdate()">
+                            <input type="text" id="inp-shopphone" class="flat-input" placeholder="Contact / Phone No." oninput="debouncedPrintUpdate()">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1491,12 +1596,20 @@
     <div class="export-bar glass-panel">
         <div class="export-settings">
             <div class="flex-between w-100">
-                <span class="text-sm font-semibold">Max Quality: <span id="lbl-size" style="color: var(--primary);">200 KB</span></span>
+                <span class="text-sm font-semibold">Target Size: <span id="lbl-size" style="color: var(--primary); font-weight: 700;">50 KB</span> <span id="lbl-live-kb" class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); font-size: 0.7rem; margin-left: 6px; padding: 2px 6px; border-radius: 4px;">Live: ~48 KB</span></span>
                 <span class="text-xs text-muted" id="lbl-dim">--- px</span>
             </div>
+            <!-- Quick Target KB Chips -->
+            <div class="flex-row gap-2 mt-1" id="quick-kb-chips" style="overflow-x: auto; scrollbar-width: none;">
+                <button type="button" class="badge-btn" onclick="setTargetKB(20, this)">10-20 KB</button>
+                <button type="button" class="badge-btn active" onclick="setTargetKB(50, this)">20-50 KB</button>
+                <button type="button" class="badge-btn" onclick="setTargetKB(100, this)">50-100 KB</button>
+                <button type="button" class="badge-btn" onclick="setTargetKB(200, this)">100-200 KB</button>
+                <button type="button" class="badge-btn" onclick="setTargetKB(500, this)">Max Res</button>
+            </div>
             <div class="flex-row gap-3 mt-1">
-                <input type="range" id="exp-size" min="20" max="1024" value="200" step="10" oninput="updateSizeLabel()" style="flex-grow: 1;">
-                <select id="exp-fmt" class="flat-select" style="width: 90px; padding: 8px;">
+                <input type="range" id="exp-size" min="10" max="1024" value="50" step="5" oninput="updateSizeLabel(); updateLiveSizeEstimate();" style="flex-grow: 1;">
+                <select id="exp-fmt" class="flat-select" style="width: 90px; padding: 8px;" onchange="updateLiveSizeEstimate()">
                     <option value="jpeg">JPG</option>
                     <option value="png">PNG</option>
                 </select>
@@ -1606,14 +1719,42 @@
     const PX_PER_MM = DPI / 25.4; 
     
     const PRESETS = {
-        pvc:      { ar: 85.6/54, w_mm: 85.6, h_mm: 54.0, label: 'PVC Card' },
-        eci:      { ar: 35/45, w_mm: 35, h_mm: 45, label: '3.5 x 4.5 cm' },
-        pan:      { ar: 25/35, w_mm: 25, h_mm: 35, label: '2.5 x 3.5 cm' },
-        passport: { ar: 1,     w_mm: 51, h_mm: 51, label: '5.1 x 5.1 cm' },
-        upsc:     { ar: 35/45, w_mm: 35, h_mm: 45, label: '3.5 x 4.5 cm' },
-        ssc:      { ar: 35/45, w_mm: 35, h_mm: 45, label: '3.5 x 4.5 cm' },
-        ibps:     { ar: 45/35, w_mm: 45, h_mm: 35, label: '4.5 x 3.5 cm' },
-        custom:   { ar: NaN,   w_mm: 35, h_mm: 45, label: 'Free Form' }
+        // India Government & Exams
+        'upsc':        { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'UPSC / IAS (3.5 × 4.5 cm)' },
+        'ssc':         { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'SSC / CGL (3.5 × 4.5 cm)' },
+        'rrb':         { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'Railway RRB (3.5 × 4.5 cm)' },
+        'ibps':        { ar: 45/35, w_mm: 45.0, h_mm: 35.0, label: 'Bank PO / Clerk (4.5 × 3.5 cm)' },
+        'nta':         { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'NTA NEET / JEE (3.5 × 4.5 cm)' },
+        
+        // ID Cards & Proofs (India)
+        'passport':    { ar: 1,     w_mm: 51.0, h_mm: 51.0, label: 'Indian Passport (5.1 × 5.1 cm)' },
+        'eci':         { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'Voter ID (3.5 × 4.5 cm)' },
+        'pan':         { ar: 25/35, w_mm: 25.0, h_mm: 35.0, label: 'PAN Card (2.5 × 3.5 cm)' },
+        'dl_in':       { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'Driving License (3.5 × 4.5 cm)' },
+        'pvc':         { ar: 85.6/54, w_mm: 85.6, h_mm: 54.0, label: 'PVC Card Full (8.56 × 5.4 cm)' },
+        'oci':         { ar: 1,     w_mm: 51.0, h_mm: 51.0, label: 'OCI Card (5.1 × 5.1 cm)' },
+        
+        // International Visas & Passports
+        'us_visa':     { ar: 1,     w_mm: 51.0, h_mm: 51.0, label: 'US Visa / Green Card (2 × 2 in)' },
+        'schengen':    { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'Schengen Visa (3.5 × 4.5 cm)' },
+        'uk_visa':     { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'UK Passport / Visa (3.5 × 4.5 cm)' },
+        'canada_pass': { ar: 50/70, w_mm: 50.0, h_mm: 70.0, label: 'Canada Passport (5.0 × 7.0 cm)' },
+        'canada_visa': { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'Canada Visa (3.5 × 4.5 cm)' },
+        'australia':   { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'Australia Visa (3.5 × 4.5 cm)' },
+        'dubai_visa':  { ar: 40/60, w_mm: 40.0, h_mm: 60.0, label: 'Dubai / UAE Visa (4.0 × 6.0 cm)' },
+        'singapore':   { ar: 35/45, w_mm: 35.0, h_mm: 45.0, label: 'Singapore Visa (3.5 × 4.5 cm)' },
+        'malaysia':    { ar: 35/50, w_mm: 35.0, h_mm: 50.0, label: 'Malaysia Visa (3.5 × 5.0 cm)' },
+        'japan_visa':  { ar: 45/45, w_mm: 45.0, h_mm: 45.0, label: 'Japan Visa (4.5 × 4.5 cm)' },
+        'china_visa':  { ar: 33/48, w_mm: 33.0, h_mm: 48.0, label: 'China Visa (3.3 × 4.8 cm)' },
+
+        // Signatures & Impressions
+        'sig_upsc':    { ar: 35/15, w_mm: 35.0, h_mm: 15.0, label: 'UPSC Signature (3.5 × 1.5 cm)' },
+        'sig_ssc':     { ar: 40/20, w_mm: 40.0, h_mm: 20.0, label: 'SSC Signature (4.0 × 2.0 cm)' },
+        'sig_ibps':    { ar: 35/15, w_mm: 35.0, h_mm: 15.0, label: 'Bank PO Signature (140 × 60 px)' },
+        'thumb_lti':   { ar: 1,     w_mm: 35.0, h_mm: 35.0, label: 'Left Thumb (LTI) (3.5 × 3.5 cm)' },
+
+        // Free Form
+        'custom':      { ar: NaN,   w_mm: 35.0, h_mm: 45.0, label: 'Custom Free Form' }
     };
 
     const PAPER_PRESETS = {
@@ -2423,6 +2564,141 @@
         document.getElementById('lbl-size').textContent = kb >= 1000 ? `${(kb/1024).toFixed(1)} MB` : `${kb} KB`;
     }
 
+    function setTargetKB(kb, btnEl) {
+        document.getElementById('exp-size').value = kb;
+        updateSizeLabel();
+        if (btnEl) {
+            document.querySelectorAll('#quick-kb-chips .badge-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+        }
+        updateLiveSizeEstimate();
+    }
+
+    function updateLiveSizeEstimate() {
+        if (!state.cropper) return;
+        const baseCanvas = synthesizeFinalCanvas();
+        if (!baseCanvas) return;
+        const maxKB = parseInt(document.getElementById('exp-size').value) || 50;
+        const fmt = document.getElementById('exp-fmt').value;
+        const liveEl = document.getElementById('lbl-live-kb');
+        if (!liveEl) return;
+
+        if (fmt === 'png') {
+            baseCanvas.toBlob(b => {
+                if (b) liveEl.textContent = `Actual: ${(b.size / 1024).toFixed(1)} KB`;
+            }, 'image/png');
+        } else {
+            baseCanvas.toBlob(b => {
+                if (b) {
+                    const kb = (b.size / 1024).toFixed(1);
+                    const isUnder = b.size <= maxKB * 1024;
+                    liveEl.textContent = isUnder ? `Live: ${kb} KB ✓` : `Live: ~${maxKB} KB (Auto Comp)`;
+                    liveEl.style.color = 'var(--success)';
+                }
+            }, 'image/jpeg', 0.85);
+        }
+    }
+
+    function applySignatureInkFilter(ctx, width, height, threshold, colorMode, invert) {
+        const imgData = ctx.getImageData(0, 0, width, height);
+        const d = imgData.data;
+        
+        let inkR = 0, inkG = 0, inkB = 0;
+        if (colorMode === 'blue') { inkR = 0; inkG = 51; inkB = 102; }
+        else if (colorMode === 'navy') { inkR = 15; inkG = 23; inkB = 42; }
+
+        for (let i = 0; i < d.length; i += 4) {
+            const r = d[i], g = d[i+1], b = d[i+2];
+            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+            
+            let isBg = lum > threshold;
+            if (invert) isBg = !isBg;
+
+            if (isBg) {
+                d[i] = 255; d[i+1] = 255; d[i+2] = 255; d[i+3] = 255;
+            } else {
+                if (colorMode === 'original') {
+                    const factor = Math.max(0, lum / threshold);
+                    d[i] = Math.round(r * factor);
+                    d[i+1] = Math.round(g * factor);
+                    d[i+2] = Math.round(b * factor);
+                    d[i+3] = 255;
+                } else {
+                    const intensity = 1 - (lum / threshold);
+                    d[i] = Math.round(inkR + (255 - inkR) * (1 - intensity));
+                    d[i+1] = Math.round(inkG + (255 - inkG) * (1 - intensity));
+                    d[i+2] = Math.round(inkB + (255 - inkB) * (1 - intensity));
+                    d[i+3] = 255;
+                }
+            }
+        }
+        ctx.putImageData(imgData, 0, 0);
+    }
+
+    function autoCleanSignature() {
+        if (!state.cropper) { showToast("Please upload an image first", "error"); return; }
+        const chkFilter = document.getElementById('chk-sig-filter');
+        if (chkFilter) chkFilter.checked = true;
+        toggleSigFilter();
+        
+        document.getElementById('adj-sig-thresh').value = 160;
+        document.getElementById('val-sig-thresh').textContent = '160';
+        document.getElementById('sig-color-mode').value = 'black';
+        document.getElementById('chk-sig-invert').checked = false;
+        
+        document.getElementById('adj-c').value = 120;
+        document.getElementById('adj-b').value = 105;
+        
+        triggerCanvasUpdate();
+        updateLiveSizeEstimate();
+        showToast("✨ Signature Paper Cleaned & Whitened!");
+    }
+
+    function toggleSigFilter() {
+        const isChecked = document.getElementById('chk-sig-filter').checked;
+        const ctrl = document.getElementById('sig-filter-controls');
+        if (ctrl) {
+            ctrl.style.opacity = isChecked ? '1' : '0.4';
+            ctrl.style.pointerEvents = isChecked ? 'auto' : 'none';
+        }
+        triggerCanvasUpdate();
+        updateLiveSizeEstimate();
+    }
+
+    function applySigFilterControls() {
+        const thresh = document.getElementById('adj-sig-thresh').value;
+        const valEl = document.getElementById('val-sig-thresh');
+        if (valEl) valEl.textContent = thresh;
+        triggerCanvasUpdate();
+        updateLiveSizeEstimate();
+    }
+    const debouncedSigFilterApply = debounce(applySigFilterControls, 50);
+
+    function applySigPreset(presetKey) {
+        if (presetKey === 'sig_custom') {
+            document.getElementById('docType').value = 'custom';
+            document.getElementById('custom-photo-inputs').style.display = 'block';
+        } else {
+            document.getElementById('docType').value = presetKey;
+        }
+        updateDimensions();
+        
+        const chkFilter = document.getElementById('chk-sig-filter');
+        if (chkFilter && !chkFilter.checked) {
+            chkFilter.checked = true;
+            toggleSigFilter();
+        }
+        
+        updateBgColor('transparent');
+        
+        if (presetKey.startsWith('sig_')) {
+            setTargetKB(20, document.querySelector('#quick-kb-chips .badge-btn:first-child'));
+        } else if (presetKey === 'thumb_lti') {
+            setTargetKB(50, document.querySelectorAll('#quick-kb-chips .badge-btn')[1]);
+        }
+        triggerCanvasUpdate();
+    }
+
     function synthesizeFinalCanvas() {
         if(!state.cropper) return null;
         const presetKey = document.getElementById('docType').value;
@@ -2437,7 +2713,7 @@
             targetH = Math.round((parseFloat(document.getElementById('custom-photo-h').value) || 45) * PX_PER_MM);
         }
 
-        const isLocked = document.getElementById('chk-lock-ar').checked;
+        const isLocked = document.getElementById('chk-lock-ar') ? document.getElementById('chk-lock-ar').checked : true;
         if (!isLocked) {
             const cropData = state.cropper.getCropBoxData();
             if (cropData.height > 0) {
@@ -2485,6 +2761,14 @@
         ctx.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%) sepia(${sep}%) blur(${blur}px) ${gray}`;
         ctx.drawImage(raw, 0, 0, final.width, final.height);
         ctx.filter = 'none';
+
+        // Apply Signature Ink Enhancer Filter if active
+        if (document.getElementById('chk-sig-filter')?.checked) {
+            const thresh = parseInt(document.getElementById('adj-sig-thresh')?.value) || 160;
+            const colorMode = document.getElementById('sig-color-mode')?.value || 'black';
+            const invert = document.getElementById('chk-sig-invert')?.checked || false;
+            applySignatureInkFilter(ctx, final.width, final.height, thresh, colorMode, invert);
+        }
 
         // Apply Custom Border Layer
         const bWidth = parseInt(document.getElementById('inp-border').value) || 0;
@@ -2539,7 +2823,8 @@
         const paperId = document.getElementById('print-paper').value;
         const presetKey = document.getElementById('docType').value;
         const cutMarkStyle = document.getElementById('print-cutmarks').value;
-        const shopName = document.getElementById('inp-shopname').value.trim();
+        const shopName = document.getElementById('inp-shopname')?.value.trim() || '';
+        const shopPhone = document.getElementById('inp-shopphone')?.value.trim() || '';
         
         const gap_mm = parseFloat(document.getElementById('print-gap').value) || 3; 
         const margin_mm = parseFloat(document.getElementById('print-margin').value) || 5; 
@@ -2568,7 +2853,7 @@
         const photoH_px = Math.round(photoH_mm * PX_PER_MM);
         const gap_px = Math.round(gap_mm * PX_PER_MM);
         
-        const bottom_reserve_mm = shopName ? 8.0 : 0; 
+        const bottom_reserve_mm = (shopName || shopPhone) ? 8.0 : 0; 
         let maxCols = Math.floor(((sheetW_mm - (margin_mm * 2)) + gap_mm) / (photoW_mm + gap_mm));
         let maxRows = Math.floor(((sheetH_mm - (margin_mm * 2) - bottom_reserve_mm) + gap_mm) / (photoH_mm + gap_mm));
         let maxCapacity = maxCols * maxRows;
@@ -2601,25 +2886,41 @@
                 ctx.drawImage(img, x, y, photoW_px, photoH_px);
                 
                 if (cutMarkStyle !== 'none') {
-                    ctx.strokeStyle = '#bbbbbb'; ctx.lineWidth = 1;
-                    ctx.setLineDash(cutMarkStyle === 'dashed-pro' ? [10, 8] : []);
-                    ctx.strokeRect(x, y, photoW_px, photoH_px);
-
-                    if (cutMarkStyle === 'dashed-pro') {
-                        ctx.setLineDash([]); ctx.fillStyle = 'rgba(150, 150, 150, 0.4)'; 
-                        ctx.font = `${Math.max(6, Math.round(1.1 * PX_PER_MM))}px "Inter", sans-serif`;
+                    if (cutMarkStyle === 'solid') {
+                        ctx.strokeStyle = '#cccccc'; ctx.lineWidth = 0.8;
+                        ctx.setLineDash([]);
+                        ctx.strokeRect(x, y, photoW_px, photoH_px);
+                    } else if (cutMarkStyle === 'dashed-pro') {
+                        ctx.strokeStyle = '#aaaaaa'; ctx.lineWidth = 1;
+                        ctx.setLineDash([8, 6]);
+                        ctx.strokeRect(x, y, photoW_px, photoH_px);
+                        ctx.setLineDash([]);
+                        
+                        ctx.fillStyle = 'rgba(120, 120, 120, 0.5)';
+                        ctx.font = `${Math.max(7, Math.round(1.0 * PX_PER_MM))}px sans-serif`;
                         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                        ctx.fillText("✂ joykumbhakar.netlify.app ✂", x + (photoW_px/2), y - 2);
+                        ctx.fillText("✂", x + (photoW_px / 2), y - 2);
+                    } else if (cutMarkStyle === 'corner-cross') {
+                        ctx.strokeStyle = '#999999'; ctx.lineWidth = 1;
+                        ctx.setLineDash([]);
+                        const markLen = Math.round(2.5 * PX_PER_MM);
+                        ctx.beginPath(); ctx.moveTo(x - markLen, y); ctx.lineTo(x, y); ctx.moveTo(x, y - markLen); ctx.lineTo(x, y); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(x + photoW_px, y); ctx.lineTo(x + photoW_px + markLen, y); ctx.moveTo(x + photoW_px, y - markLen); ctx.lineTo(x + photoW_px, y); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(x - markLen, y + photoH_px); ctx.lineTo(x, y + photoH_px); ctx.moveTo(x, y + photoH_px); ctx.lineTo(x, y + photoH_px + markLen); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(x + photoW_px, y + photoH_px); ctx.lineTo(x + photoW_px + markLen, y + photoH_px); ctx.moveTo(x + photoW_px, y + photoH_px); ctx.lineTo(x + photoW_px, y + photoH_px + markLen); ctx.stroke();
                     }
                 }
                 drawIndex++;
             }
         }
 
-        if (shopName) {
-            ctx.fillStyle = '#888888'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-            ctx.font = `600 ${Math.round(4.0 * PX_PER_MM)}px "Inter", sans-serif`;
-            ctx.fillText(shopName.toUpperCase(), sheetW_px / 2, sheetH_px - (margin_mm * PX_PER_MM));
+        if (shopName || shopPhone) {
+            ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+            ctx.font = `600 ${Math.round(3.5 * PX_PER_MM)}px "Inter", sans-serif`;
+            const headerText = shopName ? shopName.toUpperCase() : '';
+            const subText = shopPhone ? `Contact: ${shopPhone}` : '';
+            const brandStr = [headerText, subText].filter(Boolean).join(' • ');
+            ctx.fillText(brandStr, sheetW_px / 2, sheetH_px - Math.round(margin_mm * 0.5 * PX_PER_MM));
         }
 
         return sheet;
